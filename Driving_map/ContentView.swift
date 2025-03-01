@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import CoreLocation
 
 struct Pin {
     let name: String
@@ -21,6 +22,44 @@ struct Path {
     var coordinates: [CLLocationCoordinate2D] // 실제 도로 경로를 저장
 }
 
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private var locationManager: CLLocationManager
+    @Published var userLocation: CLLocationCoordinate2D?
+    @Published var heading: CLLocationDirection?
+
+    override init() {
+        locationManager = CLLocationManager()
+        super.init()
+        
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization() // 위치 권한 요청
+        locationManager.startUpdatingLocation()
+        locationManager.startUpdatingHeading()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        userLocation = location.coordinate
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        heading = newHeading.trueHeading
+    }
+
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationManager.startUpdatingLocation()
+        case .denied, .restricted:
+            print("위치 권한이 거부되었습니다.")
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        @unknown default:
+            print("알 수 없는 오류")
+        }
+    }
+}
+
 struct ContentView: View {
     @State private var pins: [Pin] = [
         .init(name: "사당역", coordinate: .사당역, icon: "tram.circle.fill", color: .pink),
@@ -31,9 +70,16 @@ struct ContentView: View {
     @State private var paths: [Path] = [
         .init(name: "사당역 -> 북악스카이웨이", waypoints: [.사당역, .인왕산호랑이동상, .북악스카이웨이], coordinates: [])
     ]
+    
+    @StateObject private var locationManager = LocationManager()
 
     var body: some View {
         Map {
+            // 사용자 위치 표시
+            if locationManager.userLocation != nil {
+                UserAnnotation()
+            }
+
             // 핀 표시
             ForEach(pins, id: \.name) { pin in
                 Annotation(pin.name, coordinate: pin.coordinate) {
@@ -54,12 +100,19 @@ struct ContentView: View {
             }
         }
         .mapStyle(.standard(elevation: .realistic))
-        .edgesIgnoringSafeArea(.all) // 전체 화면 적용
-        .task {
-            await updatePaths()
+        .mapControls {
+            MapUserLocationButton()
+            MapCompass()
+            MapScaleView()
+        }
+        .onAppear {
+            Task {
+                // 경로 계산
+                await updatePaths()
+            }
         }
     }
-    
+
     /// MKDirections를 이용해 실제 도로 기반 경로를 계산하는 함수
     func updatePaths() async {
         for index in paths.indices {
