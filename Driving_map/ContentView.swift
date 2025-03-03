@@ -16,108 +16,84 @@ struct Pin {
     let color: Color
 }
 
-struct Path {
+struct Path: Equatable {
     let name: String
     let waypoints: [CLLocationCoordinate2D] // 시작점, 경유지, 도착점
     var coordinates: [CLLocationCoordinate2D] // 실제 도로 경로를 저장
-}
-
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private var locationManager: CLLocationManager
-    @Published var userLocation: CLLocationCoordinate2D?
-    @Published var heading: CLLocationDirection?
-
-    override init() {
-        locationManager = CLLocationManager()
-        super.init()
-        
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization() // 위치 권한 요청
-        locationManager.startUpdatingLocation()
-        locationManager.startUpdatingHeading()
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        userLocation = location.coordinate
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-        heading = newHeading.trueHeading
-    }
-
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        switch status {
-        case .authorizedWhenInUse, .authorizedAlways:
-            locationManager.startUpdatingLocation()
-        case .denied, .restricted:
-            print("위치 권한이 거부되었습니다.")
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-        @unknown default:
-            print("알 수 없는 오류")
-        }
+    
+    static func == (lhs: Path, rhs: Path) -> Bool {
+        return lhs.name == rhs.name
     }
 }
 
 struct ContentView: View {
+    @StateObject private var locationManager = LocationManager()
+    @State private var mapModel = MapViewModel()
     @State private var pins: [Pin] = [
         .init(name: "사당역", coordinate: .사당역, icon: "tram.circle.fill", color: .pink),
         .init(name: "관악산", coordinate: .관악산, icon: "mountain.2.circle.fill", color: .green),
         .init(name: "북악스카이웨이", coordinate: .북악스카이웨이, icon: "star.circle.fill", color: .orange)
     ]
-    
-    @State private var paths: [Path] = [
-        .init(name: "사당역 -> 북악스카이웨이", waypoints: [.사당역, .인왕산호랑이동상, .북악스카이웨이], coordinates: [])
-    ]
-    
-    @StateObject private var locationManager = LocationManager()
 
     var body: some View {
-        Map {
-            // 사용자 위치 표시
-            if locationManager.userLocation != nil {
-                UserAnnotation()
+        ZStack {
+            Map {
+                // 사용자 위치 표시
+                if locationManager.userLocation != nil {
+                    UserAnnotation()
+                }
+
+                // 핀 표시
+                ForEach(pins, id: \.name) { pin in
+                    let _ = print("pin[\(pin.name)] 표시")
+                    Annotation(pin.name, coordinate: pin.coordinate) {
+                        Image(systemName: pin.icon)
+                            .padding(4)
+                            .foregroundStyle(.white)
+                            .background(pin.color)
+                            .clipShape(Circle())
+                    }
+                }
+                
+                // 도로 기반 경로 표시
+                ForEach(mapModel.pathCoordinates.indices, id: \.self) { index in
+                    let _ = print("path[\(index)] 표시")
+                    MapPolyline(coordinates: mapModel.pathCoordinates[index])
+                        .stroke(Color.blue, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                }
+            }
+            .mapStyle(.standard(elevation: .realistic))
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+                MapScaleView()
+            }
+            .onAppear {
+                Task {
+                    // 경로 로드
+                    await mapModel.loadPaths()
+                }
+            }
+            .onChange(of: mapModel.paths) { oldValue, newValue in
+                Task {
+                    // 경로 계산
+                    await updatePaths()
+                }
             }
 
-            // 핀 표시
-            ForEach(pins, id: \.name) { pin in
-                Annotation(pin.name, coordinate: pin.coordinate) {
-                    Image(systemName: pin.icon)
-                        .padding(4)
-                        .foregroundStyle(.white)
-                        .background(pin.color)
-                        .clipShape(Circle())
-                }
-            }
-            
-            // 도로 기반 경로 표시
-            ForEach(paths, id: \.name) { path in
-                if !path.coordinates.isEmpty {
-                    MapPolyline(coordinates: path.coordinates)
-                        .stroke(Color.green, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                }
-            }
-        }
-        .mapStyle(.standard(elevation: .realistic))
-        .mapControls {
-            MapUserLocationButton()
-            MapCompass()
-            MapScaleView()
-        }
-        .onAppear {
-            Task {
-                // 경로 계산
-                await updatePaths()
+            // 버튼 추가
+            VStack {
+                Spacer()
+                CaptureButton(mapModel: mapModel)
             }
         }
     }
-
+    
     /// MKDirections를 이용해 실제 도로 기반 경로를 계산하는 함수
     func updatePaths() async {
-        for index in paths.indices {
+        for index in mapModel.paths.indices where mapModel.paths[index].coordinates.isEmpty {
             var routeCoordinates: [CLLocationCoordinate2D] = []
-            let waypoints = paths[index].waypoints
+            let waypoints = mapModel.paths[index].waypoints
             
             for i in 0..<waypoints.count - 1 {
                 let start = MKMapItem(placemark: MKPlacemark(coordinate: waypoints[i]))
@@ -141,7 +117,8 @@ struct ContentView: View {
                 }
             }
             
-            paths[index].coordinates = routeCoordinates
+            mapModel.paths[index].coordinates = routeCoordinates
+            mapModel.pathCoordinates.append(routeCoordinates)
         }
     }
 }

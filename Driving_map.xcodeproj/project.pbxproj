@@ -15,6 +15,7 @@
 		8745A9B12D75B23C007C7824 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8745A9A32D75B23C007C7824 /* Preview Assets.xcassets */; };
 		8745A9B22D75B23C007C7824 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8745A9A62D75B23C007C7824 /* Assets.xcassets */; };
 		8745A9B52D75B256007C7824 /* MapModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9B42D75B256007C7824 /* MapModel.swift */; };
+		8745A9BA2D75C67B007C7824 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9B92D75C67B007C7824 /* LocationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +44,7 @@
 		8745A9A92D75B23C007C7824 /* Driving_mapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Driving_mapApp.swift; sourceTree = "<group>"; };
 		8745A9AA2D75B23C007C7824 /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
 		8745A9B42D75B256007C7824 /* MapModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapModel.swift; sourceTree = "<group>"; };
+		8745A9B92D75C67B007C7824 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		8753A10B2D7325E90085F964 /* Driving_map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Driving_map.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8753A11B2D7325EA0085F964 /* Driving_mapTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Driving_mapTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8753A1252D7325EA0085F964 /* Driving_mapUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Driving_mapUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,6 +100,7 @@
 		8745A9AB2D75B23C007C7824 /* Driving_map */ = {
 			isa = PBXGroup;
 			children = (
+				8745A9B82D75C672007C7824 /* Manager */,
 				8745A9B32D75B240007C7824 /* Model */,
 				8745A9A52D75B23C007C7824 /* Preview Content */,
 				8745A9A62D75B23C007C7824 /* Assets.xcassets */,
@@ -115,6 +118,14 @@
 				8745A9AA2D75B23C007C7824 /* MapViewModel.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		8745A9B82D75C672007C7824 /* Manager */ = {
+			isa = PBXGroup;
+			children = (
+				8745A9B92D75C67B007C7824 /* LocationManager.swift */,
+			);
+			path = Manager;
 			sourceTree = "<group>";
 		};
 		8753A1022D7325E90085F964 = {
@@ -283,6 +294,7 @@
 				8745A9AC2D75B23C007C7824 /* PreviewMapViewModel.swift in Sources */,
 				8745A9AD2D75B23C007C7824 /* CaptureButton.swift in Sources */,
 				8745A9AE2D75B23C007C7824 /* ContentView.swift in Sources */,
+				8745A9BA2D75C67B007C7824 /* LocationManager.swift in Sources */,
 				8745A9AF2D75B23C007C7824 /* Driving_mapApp.swift in Sources */,
 				8745A9B52D75B256007C7824 /* MapModel.swift in Sources */,
 				8745A9B02D75B23C007C7824 /* MapViewModel.swift in Sources */,
