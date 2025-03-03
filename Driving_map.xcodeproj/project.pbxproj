@@ -6,6 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8745A9AC2D75B23C007C7824 /* PreviewMapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9A42D75B23C007C7824 /* PreviewMapViewModel.swift */; };
+		8745A9AD2D75B23C007C7824 /* CaptureButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9A72D75B23C007C7824 /* CaptureButton.swift */; };
+		8745A9AE2D75B23C007C7824 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9A82D75B23C007C7824 /* ContentView.swift */; };
+		8745A9AF2D75B23C007C7824 /* Driving_mapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9A92D75B23C007C7824 /* Driving_mapApp.swift */; };
+		8745A9B02D75B23C007C7824 /* MapViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9AA2D75B23C007C7824 /* MapViewModel.swift */; };
+		8745A9B12D75B23C007C7824 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8745A9A32D75B23C007C7824 /* Preview Assets.xcassets */; };
+		8745A9B22D75B23C007C7824 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8745A9A62D75B23C007C7824 /* Assets.xcassets */; };
+		8745A9B52D75B256007C7824 /* MapModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8745A9B42D75B256007C7824 /* MapModel.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8753A11C2D7325EA0085F964 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,17 +35,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8745A9A32D75B23C007C7824 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		8745A9A42D75B23C007C7824 /* PreviewMapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewMapViewModel.swift; sourceTree = "<group>"; };
+		8745A9A62D75B23C007C7824 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8745A9A72D75B23C007C7824 /* CaptureButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureButton.swift; sourceTree = "<group>"; };
+		8745A9A82D75B23C007C7824 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8745A9A92D75B23C007C7824 /* Driving_mapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Driving_mapApp.swift; sourceTree = "<group>"; };
+		8745A9AA2D75B23C007C7824 /* MapViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewModel.swift; sourceTree = "<group>"; };
+		8745A9B42D75B256007C7824 /* MapModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapModel.swift; sourceTree = "<group>"; };
 		8753A10B2D7325E90085F964 /* Driving_map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Driving_map.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8753A11B2D7325EA0085F964 /* Driving_mapTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Driving_mapTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8753A1252D7325EA0085F964 /* Driving_mapUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Driving_mapUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		8753A10D2D7325E90085F964 /* Driving_map */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Driving_map;
-			sourceTree = "<group>";
-		};
 		8753A11E2D7325EA0085F964 /* Driving_mapTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Driving_mapTests;
@@ -72,10 +86,41 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8745A9A52D75B23C007C7824 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				8745A9A32D75B23C007C7824 /* Preview Assets.xcassets */,
+				8745A9A42D75B23C007C7824 /* PreviewMapViewModel.swift */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		8745A9AB2D75B23C007C7824 /* Driving_map */ = {
+			isa = PBXGroup;
+			children = (
+				8745A9B32D75B240007C7824 /* Model */,
+				8745A9A52D75B23C007C7824 /* Preview Content */,
+				8745A9A62D75B23C007C7824 /* Assets.xcassets */,
+				8745A9A72D75B23C007C7824 /* CaptureButton.swift */,
+				8745A9A82D75B23C007C7824 /* ContentView.swift */,
+				8745A9A92D75B23C007C7824 /* Driving_mapApp.swift */,
+			);
+			path = Driving_map;
+			sourceTree = "<group>";
+		};
+		8745A9B32D75B240007C7824 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				8745A9B42D75B256007C7824 /* MapModel.swift */,
+				8745A9AA2D75B23C007C7824 /* MapViewModel.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		8753A1022D7325E90085F964 = {
 			isa = PBXGroup;
 			children = (
-				8753A10D2D7325E90085F964 /* Driving_map */,
+				8745A9AB2D75B23C007C7824 /* Driving_map */,
 				8753A11E2D7325EA0085F964 /* Driving_mapTests */,
 				8753A1282D7325EA0085F964 /* Driving_mapUITests */,
 				8753A10C2D7325E90085F964 /* Products */,
@@ -106,9 +151,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				8753A10D2D7325E90085F964 /* Driving_map */,
 			);
 			name = Driving_map;
 			packageProductDependencies = (
@@ -212,6 +254,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8745A9B12D75B23C007C7824 /* Preview Assets.xcassets in Resources */,
+				8745A9B22D75B23C007C7824 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,6 +280,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8745A9AC2D75B23C007C7824 /* PreviewMapViewModel.swift in Sources */,
+				8745A9AD2D75B23C007C7824 /* CaptureButton.swift in Sources */,
+				8745A9AE2D75B23C007C7824 /* ContentView.swift in Sources */,
+				8745A9AF2D75B23C007C7824 /* Driving_mapApp.swift in Sources */,
+				8745A9B52D75B256007C7824 /* MapModel.swift in Sources */,
+				8745A9B02D75B23C007C7824 /* MapViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
