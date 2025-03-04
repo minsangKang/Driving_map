@@ -12,8 +12,7 @@ import CoreLocation
 protocol MapModel: AnyObject {
     var isRecording: Bool { get set }
     
-    var pathStartLocation: CLLocationCoordinate2D? { get set }
-    var pathEndLocation: CLLocationCoordinate2D? { get set }
+    var recordingPath: [Location]? { get set }
     
     func toggleRecording() async
 }

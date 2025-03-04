@@ -12,8 +12,7 @@ import CoreLocation
 final class PreviewMapViewModel: MapModel {
     
     var isRecording: Bool = false
-    var pathStartLocation: CLLocationCoordinate2D?
-    var pathEndLocation: CLLocationCoordinate2D?
+    var recordingPath: [Location]?
     
     // MARK: - 경로 캡쳐
     

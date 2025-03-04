@@ -6,34 +6,13 @@
 //
 
 import SwiftUI
+
 import MapKit
 import CoreLocation
-
-struct Pin {
-    let name: String
-    let coordinate: CLLocationCoordinate2D
-    let icon: String
-    let color: Color
-}
-
-struct Path: Equatable {
-    let name: String
-    let waypoints: [CLLocationCoordinate2D] // 시작점, 경유지, 도착점
-    var coordinates: [CLLocationCoordinate2D] // 실제 도로 경로를 저장
-    
-    static func == (lhs: Path, rhs: Path) -> Bool {
-        return lhs.name == rhs.name
-    }
-}
 
 struct ContentView: View {
     @StateObject private var locationManager = LocationManager()
     @State private var mapModel = MapViewModel()
-    @State private var pins: [Pin] = [
-        .init(name: "사당역", coordinate: .사당역, icon: "tram.circle.fill", color: .pink),
-        .init(name: "관악산", coordinate: .관악산, icon: "mountain.2.circle.fill", color: .green),
-        .init(name: "북악스카이웨이", coordinate: .북악스카이웨이, icon: "star.circle.fill", color: .orange)
-    ]
 
     var body: some View {
         ZStack {
@@ -44,22 +23,26 @@ struct ContentView: View {
                 }
 
                 // 핀 표시
-                ForEach(pins, id: \.name) { pin in
+                ForEach(mapModel.pins, id: \.id) { pin in
                     let _ = print("pin[\(pin.name)] 표시")
-                    Annotation(pin.name, coordinate: pin.coordinate) {
-                        Image(systemName: pin.icon)
+                    Annotation(pin.name, coordinate: pin.location.toCLLocationCoordinate2D()) {
+                        Image(systemName: pin.tag.icon)
                             .padding(4)
                             .foregroundStyle(.white)
-                            .background(pin.color)
+                            .background(Color(hex: pin.tag.color))
                             .clipShape(Circle())
                     }
                 }
                 
-                // 도로 기반 경로 표시
-                ForEach(mapModel.pathCoordinates.indices, id: \.self) { index in
-                    let _ = print("path[\(index)] 표시")
-                    MapPolyline(coordinates: mapModel.pathCoordinates[index])
-                        .stroke(Color.blue, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                // 경로 표시
+                ForEach(mapModel.paths.indices, id: \.self) { index in
+                    if !mapModel.paths[index].coordinates.isEmpty {
+                        let _ = print("path[\(index)] 표시")
+                        MapPolyline(coordinates: Array(mapModel.paths[index].coordinates.map { $0.toCLLocationCoordinate2D() }))
+                            .stroke(Color.blue, style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round))
+                    }
+                    
+                    
                 }
             }
             .mapStyle(.standard(elevation: .realistic))
@@ -71,6 +54,7 @@ struct ContentView: View {
             .onAppear {
                 Task {
                     // 경로 로드
+                    await mapModel.loadPins()
                     await mapModel.loadPaths()
                 }
             }
@@ -96,8 +80,8 @@ struct ContentView: View {
             let waypoints = mapModel.paths[index].waypoints
             
             for i in 0..<waypoints.count - 1 {
-                let start = MKMapItem(placemark: MKPlacemark(coordinate: waypoints[i]))
-                let end = MKMapItem(placemark: MKPlacemark(coordinate: waypoints[i + 1]))
+                let start = MKMapItem(placemark: MKPlacemark(coordinate: waypoints[i].toCLLocationCoordinate2D()))
+                let end = MKMapItem(placemark: MKPlacemark(coordinate: waypoints[i + 1].toCLLocationCoordinate2D()))
                 
                 let request = MKDirections.Request()
                 request.source = start
@@ -117,8 +101,8 @@ struct ContentView: View {
                 }
             }
             
-            mapModel.paths[index].coordinates = routeCoordinates
-            mapModel.pathCoordinates.append(routeCoordinates)
+            print("path[\(mapModel.paths[index].name)] 경로는 \(routeCoordinates.count)개")
+            mapModel.paths[index].coordinates = routeCoordinates.map { .init(coordinate: $0) }
         }
     }
 }
@@ -130,16 +114,6 @@ extension MKPolyline {
         getCoordinates(&coords, range: NSRange(location: 0, length: pointCount))
         return coords
     }
-}
-
-// 좌표 확장
-extension CLLocationCoordinate2D {
-    static let 사당역 = CLLocationCoordinate2D(latitude: 37.4767975, longitude: 126.9816679)
-    static let 관악산 = CLLocationCoordinate2D(latitude: 37.4429385, longitude: 126.9610024)
-    static let 북악스카이웨이 = CLLocationCoordinate2D(latitude: 37.6015529, longitude: 126.9806646)
-    static let 동작대교 = CLLocationCoordinate2D(latitude: 37.5104939, longitude: 126.9799999)
-    static let 남산3호터널 = CLLocationCoordinate2D(latitude: 37.5502869, longitude: 126.9856359)
-    static let 인왕산호랑이동상 = CLLocationCoordinate2D(latitude: 37.5803138, longitude: 126.9619724)
 }
 
 #Preview {
