@@ -12,7 +12,5 @@ import CoreLocation
 protocol MapModel: AnyObject {
     var isRecording: Bool { get set }
     
-    var recordingPath: [Location]? { get set }
-    
     func toggleRecording() async
 }

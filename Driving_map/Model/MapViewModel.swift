@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import Combine
 
 @Observable
 final class MapViewModel: MapModel {
@@ -14,15 +15,25 @@ final class MapViewModel: MapModel {
     var pins: [Pin] = []
     var paths: [Path] = []
     var isRecording: Bool = false
-    var recordingPath: [Location]?
+    var recordingPath: [CLLocationCoordinate2D] = []
     
     private var pinId: Int = 4
     private var pathId: Int = 2
     
     var locationManager: LocationManager
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         locationManager = LocationManager()
+        // userLocation 변경 감지
+        locationManager.$userLocation
+            .compactMap { $0 } // nil 제거
+            .sink { [weak self] newLocation in
+                if self?.isRecording == true {
+                    self?.recordingPath.append(newLocation)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - 경로 캡쳐
@@ -50,29 +61,32 @@ final class MapViewModel: MapModel {
         switch isRecording {
         case false:
             let start = Location(coordinate: currentLocation)
-            recordingPath = [start]
+            recordingPath = [currentLocation]
             pins.append(.init(id: pinId, name: "경로\(pathId) 시작점", location: start, tag: .시작점))
             pinId += 1
             print("출발점 설정")
             
             isRecording = true
         case true:
-            self.recordingPath?.append(.init(coordinate: currentLocation))
+            self.recordingPath.append(currentLocation)
             print("도착점 설정")
             
             await createNewPath()
-            self.recordingPath = nil
+            self.recordingPath.removeAll()
             isRecording = false
         }
     }
     
     func createNewPath() async {
-        guard let recordingPath,
-              let start = recordingPath.first,
+        guard let start = recordingPath.first,
               let end = recordingPath.last else { return }
         
-        paths.append(.init(id: pathId, name: "경로\(pathId)", start: start, end: end, waypoints: recordingPath, coordinates: []))
-        pins.append(.init(id: pinId, name: "경로\(pathId) 종료점", location: end, tag: .종료점))
+        let coordinates: [Location] = recordingPath.map { .init(coordinate: $0) }
+        let startLocation = Location(coordinate: start)
+        let endLocation = Location(coordinate: end)
+        
+        paths.append(.init(id: pathId, name: "경로\(pathId)", start: startLocation, end: endLocation, waypoints: [startLocation, endLocation], coordinates: coordinates))
+        pins.append(.init(id: pinId, name: "경로\(pathId) 종료점", location: endLocation, tag: .종료점))
         
         pathId += 1
         pinId += 1

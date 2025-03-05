@@ -34,15 +34,20 @@ struct ContentView: View {
                     }
                 }
                 
-                // 경로 표시
+                // 기록 중인 실시간 경로 표시
+                if !mapModel.recordingPath.isEmpty {
+                    let _ = print("실시간 경로 업데이트: \(mapModel.recordingPath.count) 개")
+                    MapPolyline(coordinates: mapModel.recordingPath)
+                        .stroke(Color.yellow, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+                }
+                
+                // 저장된 경로 표시
                 ForEach(mapModel.paths.indices, id: \.self) { index in
                     if !mapModel.paths[index].coordinates.isEmpty {
                         let _ = print("path[\(index)] 표시")
                         MapPolyline(coordinates: Array(mapModel.paths[index].coordinates.map { $0.toCLLocationCoordinate2D() }))
                             .stroke(Color.blue, style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round))
                     }
-                    
-                    
                 }
             }
             .mapStyle(.standard(elevation: .realistic))

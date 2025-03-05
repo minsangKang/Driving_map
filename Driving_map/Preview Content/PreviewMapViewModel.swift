@@ -12,7 +12,6 @@ import CoreLocation
 final class PreviewMapViewModel: MapModel {
     
     var isRecording: Bool = false
-    var recordingPath: [Location]?
     
     // MARK: - 경로 캡쳐
     
