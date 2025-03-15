@@ -7,24 +7,25 @@
 
 import Foundation
 import CoreLocation
+import SwiftData
 
-struct Location: Codable {
-    let latitude: Double
-    let longitude: Double
-}
-
-extension Location {
-    /// CLLocation 좌표를 `Location`로 변환하는 이니셜라이저
-    init(coordinate: CLLocationCoordinate2D) {
-        self.latitude = coordinate.latitude
-        self.longitude = coordinate.longitude
+@Model
+final class Location {
+    var latitude: Double
+    var longitude: Double
+    
+    init(latitude: Double, longitude: Double) {
+        self.latitude = latitude
+        self.longitude = longitude
     }
     
-    /// `Location`을 CLLocation 좌표로 벼환
+    /// CLLocation 좌표를 `Location`으로 변환하는 이니셜라이저
+    convenience init(coordinate: CLLocationCoordinate2D) {
+        self.init(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    }
+    
+    /// `Location`을 CLLocationCoordinate2D로 변환
     func toCLLocationCoordinate2D() -> CLLocationCoordinate2D {
-        return CLLocationCoordinate2D(
-            latitude: self.latitude,
-            longitude: self.longitude
-        )
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 }

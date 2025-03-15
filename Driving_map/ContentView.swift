@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
-
 import MapKit
 import CoreLocation
+import SwiftData
 
 struct ContentView: View {
+    
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var locationManager = LocationManager()
     @State private var mapModel = MapViewModel()
 
@@ -56,24 +58,25 @@ struct ContentView: View {
                 MapCompass()
                 MapScaleView()
             }
-            .onAppear {
-                Task {
-                    // 경로 로드
-                    await mapModel.loadPins()
-                    await mapModel.loadPaths()
-                }
-            }
-            .onChange(of: mapModel.paths) { oldValue, newValue in
-                Task {
-                    // 경로 계산
-                    await updatePaths()
-                }
-            }
 
             // 버튼 추가
             VStack {
                 Spacer()
                 CaptureButton(mapModel: mapModel)
+            }
+        }
+        .onAppear {
+            mapModel.modelContext = modelContext
+            Task {
+                // 경로 로드
+                await mapModel.loadPins()
+                await mapModel.loadPaths()
+            }
+        }
+        .onChange(of: mapModel.paths) { oldValue, newValue in
+            Task {
+                // 경로 계산
+                await updatePaths()
             }
         }
     }
@@ -123,4 +126,5 @@ extension MKPolyline {
 
 #Preview {
     ContentView()
+        .modelContainer(try! ModelContainer(for: Pin.self, Path.self))
 }

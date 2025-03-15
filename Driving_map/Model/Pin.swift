@@ -6,14 +6,19 @@
 //
 
 import Foundation
+import SwiftData
 
-struct Pin: Equatable, Codable {
-    let id: Int
-    let name: String
-    let location: Location
-    let tag: Tag
+@Model
+final class Pin {
+    @Attribute(.unique) var id: Int  // 고유 ID 설정
+    var name: String
+    var location: Location
+    var tag: Tag
     
-    static func == (lhs: Pin, rhs: Pin) -> Bool {
-        return lhs.id == rhs.id
+    init(id: Int, name: String, location: Location, tag: Tag) {
+        self.id = id
+        self.name = name
+        self.location = location
+        self.tag = tag
     }
 }

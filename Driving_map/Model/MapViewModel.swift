@@ -7,27 +7,29 @@
 
 import Foundation
 import CoreLocation
+import SwiftData
 import Combine
 
 @Observable
 final class MapViewModel: MapModel {
+    @MainActor var modelContext: ModelContext?
+    var locationManager: LocationManager
     
     var pins: [Pin] = []
     var paths: [Path] = []
     var isRecording: Bool = false
     var recordingPath: [CLLocationCoordinate2D] = []
     
-    private var pinId: Int = 4
-    private var pathId: Int = 2
-    
-    var locationManager: LocationManager
+    private var pinId: Int = 1
+    private var pathId: Int = 1
     private var cancellables = Set<AnyCancellable>()
     
     init() {
         locationManager = LocationManager()
-        // userLocation 변경 감지
+        
+        // 위치 업데이트 감지
         locationManager.$userLocation
-            .compactMap { $0 } // nil 제거
+            .compactMap { $0 }
             .sink { [weak self] newLocation in
                 if self?.isRecording == true {
                     self?.recordingPath.append(newLocation)
@@ -36,22 +38,65 @@ final class MapViewModel: MapModel {
             .store(in: &cancellables)
     }
     
-    // MARK: - 경로 캡쳐
+    // MARK: - SwiftData에서 데이터 불러오기
     
     func loadPins() async {
-        pins = [
-            .init(id: 1, name: "사당역", location: .사당역, tag: .전철역),
-            .init(id: 2, name: "관악산", location: .관악산, tag: .산),
-            .init(id: 3, name: "북악스카이웨이", location: .북악스카이웨이, tag: .즐겨찾기)
-        ]
+        guard let modelContext = modelContext else { return }
+        let descriptor = FetchDescriptor<Pin>()
+        do {
+            pins = try modelContext.fetch(descriptor)
+            updatePinIdCounters()
+        } catch {
+            print("핀 로드 실패: \(error)")
+        }
     }
     
     func loadPaths() async {
-        paths = [
-            .init(id: 1, name: "사당역 -> 북악스카이웨이", start: .사당역, end: .북악스카이웨이, waypoints: [.사당역, .인왕산호랑이동상, .북악스카이웨이], coordinates: [])
-        ]
+        guard let modelContext = modelContext else { return }
+        let descriptor = FetchDescriptor<Path>()
+        do {
+            paths = try modelContext.fetch(descriptor)
+            updatePathIdCounters()
+        } catch {
+            print("경로 로드 실패: \(error)")
+        }
     }
     
+    // MARK: - ID 값 업데이트
+    private func updatePinIdCounters() {
+        pinId = (pins.map { $0.id }.max() ?? 0) + 1
+    }
+    
+    private func updatePathIdCounters() {
+        pathId = (paths.map { $0.id }.max() ?? 0) + 1
+    }
+    
+    // MARK: - 데이터 저장
+    func savePin(_ pin: Pin) {
+        guard let modelContext = modelContext else { return }
+        modelContext.insert(pin)
+        do {
+            try modelContext.save()
+            pins.append(pin)
+            updatePinIdCounters()
+        } catch {
+            print("핀 저장 실패: \(error)")
+        }
+    }
+    
+    func savePath(_ path: Path) {
+        guard let modelContext = modelContext else { return }
+        modelContext.insert(path)
+        do {
+            try modelContext.save()
+            paths.append(path)
+            updatePathIdCounters()
+        } catch {
+            print("경로 저장 실패: \(error)")
+        }
+    }
+    
+    // MARK: - 경로 캡처
     func toggleRecording() async {
         guard let currentLocation = locationManager.userLocation else {
             print("사용자 위치를 가져올 수 없음")
@@ -62,17 +107,19 @@ final class MapViewModel: MapModel {
         case false:
             let start = Location(coordinate: currentLocation)
             recordingPath = [currentLocation]
-            pins.append(.init(id: pinId, name: "경로\(pathId) 시작점", location: start, tag: .시작점))
-            pinId += 1
-            print("출발점 설정")
             
+            let newPin = Pin(id: pinId, name: "경로\(pathId) 시작점", location: start, tag: .시작점)
+            savePin(newPin)
+            
+            print("출발점 설정")
             isRecording = true
+            
         case true:
-            self.recordingPath.append(currentLocation)
+            recordingPath.append(currentLocation)
             print("도착점 설정")
             
             await createNewPath()
-            self.recordingPath.removeAll()
+            recordingPath.removeAll()
             isRecording = false
         }
     }
@@ -81,14 +128,14 @@ final class MapViewModel: MapModel {
         guard let start = recordingPath.first,
               let end = recordingPath.last else { return }
         
-        let coordinates: [Location] = recordingPath.map { .init(coordinate: $0) }
+        let coordinates = recordingPath.map { Location(coordinate: $0) }
         let startLocation = Location(coordinate: start)
         let endLocation = Location(coordinate: end)
         
-        paths.append(.init(id: pathId, name: "경로\(pathId)", start: startLocation, end: endLocation, waypoints: [startLocation, endLocation], coordinates: coordinates))
-        pins.append(.init(id: pinId, name: "경로\(pathId) 종료점", location: endLocation, tag: .종료점))
+        let newPath = Path(id: pathId, name: "경로\(pathId)", start: startLocation, end: endLocation, waypoints: [startLocation, endLocation], coordinates: coordinates)
+        savePath(newPath)
         
-        pathId += 1
-        pinId += 1
+        let newPin = Pin(id: pinId, name: "경로\(pathId) 종료점", location: endLocation, tag: .종료점)
+        savePin(newPin)
     }
 }

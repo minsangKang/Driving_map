@@ -6,14 +6,19 @@
 //
 
 import Foundation
+import SwiftData
 
-struct Tag: Equatable, Codable {
-    let id: Int
-    let name: String
-    let icon: String
-    let color: String
-    
-    static func == (lhs: Tag, rhs: Tag) -> Bool {
-        return lhs.id == rhs.id
+@Model
+final class Tag {
+    @Attribute(.unique) var id: Int  // 고유 ID 설정
+    var name: String
+    var icon: String
+    var color: String
+
+    init(id: Int, name: String, icon: String, color: String) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+        self.color = color
     }
 }

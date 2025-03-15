@@ -494,6 +494,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Driving-map-Info.plist";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "항상 위치를 사용해야 하는 이유를 설명하는 메시지";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "위치를 사용해야 하는 이유를 설명하는 메시지";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -524,6 +526,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Driving-map-Info.plist";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "항상 위치를 사용해야 하는 이유를 설명하는 메시지";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "위치를 사용해야 하는 이유를 설명하는 메시지";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

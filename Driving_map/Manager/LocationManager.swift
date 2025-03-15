@@ -18,7 +18,8 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         super.init()
         
         locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization() // 위치 권한 요청
+        locationManager.allowsBackgroundLocationUpdates = true // 위치 업데이트를 백그라운드에서 계속 받기
+        locationManager.requestAlwaysAuthorization() // 위치 권한 '항상 허용' 요청
         locationManager.startUpdatingLocation()
         locationManager.startUpdatingHeading()
     }

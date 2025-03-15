@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-    <dict>
-        <key>NSLocationWhenInUseUsageDescription</key>
-        <string>위치를 사용해야 하는 이유를 설명하는 메시지</string>
-        <key>NSLocationAlwaysUsageDescription</key>
-        <string>항상 위치를 사용해야 하는 이유를 설명하는 메시지</string>
-    </dict>
+<dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+</dict>
 </plist>
