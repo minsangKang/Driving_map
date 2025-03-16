@@ -21,7 +21,6 @@
 		87EA565B2D770EA5003E36B9 /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87EA565A2D770EA5003E36B9 /* Tag.swift */; };
 		87EA565D2D771073003E36B9 /* Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87EA565C2D771073003E36B9 /* Location.swift */; };
 		87EA56602D7734E3003E36B9 /* Color+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87EA565F2D7734E3003E36B9 /* Color+Extensions.swift */; };
-		87EA56622D773693003E36B9 /* DummyModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87EA56612D773693003E36B9 /* DummyModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,7 +58,6 @@
 		87EA565A2D770EA5003E36B9 /* Tag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
 		87EA565C2D771073003E36B9 /* Location.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location.swift; sourceTree = "<group>"; };
 		87EA565F2D7734E3003E36B9 /* Color+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extensions.swift"; sourceTree = "<group>"; };
-		87EA56612D773693003E36B9 /* DummyModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -176,7 +174,6 @@
 		87ECF2572D86ADAC00359F74 /* PreviewHelper */ = {
 			isa = PBXGroup;
 			children = (
-				87EA56612D773693003E36B9 /* DummyModel.swift */,
 				8745A9A42D75B23C007C7824 /* PreviewMapViewModel.swift */,
 			);
 			path = PreviewHelper;
@@ -327,7 +324,6 @@
 			files = (
 				8745A9AC2D75B23C007C7824 /* PreviewMapViewModel.swift in Sources */,
 				87EA565D2D771073003E36B9 /* Location.swift in Sources */,
-				87EA56622D773693003E36B9 /* DummyModel.swift in Sources */,
 				8745A9AD2D75B23C007C7824 /* CaptureButton.swift in Sources */,
 				87EA565B2D770EA5003E36B9 /* Tag.swift in Sources */,
 				8745A9AE2D75B23C007C7824 /* ContentView.swift in Sources */,
@@ -513,7 +509,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.devmin.Driving-map";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -545,7 +541,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.devmin.Driving-map";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

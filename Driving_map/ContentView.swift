@@ -9,6 +9,7 @@ import SwiftUI
 import MapKit
 import CoreLocation
 import SwiftData
+import Photos
 
 struct ContentView: View {
     
@@ -19,6 +20,8 @@ struct ContentView: View {
     @State private var cameraPosition: MapCameraPosition = .automatic // 카메라 위치 관리
     @State private var previousScale: CGFloat = 1.0
     @State private var isFollow = true // 현위치 & 방향 적용 여부
+    
+    @State private var snapshotImage: UIImage?
 
     var body: some View {
         GeometryReader { geometry in
@@ -32,18 +35,10 @@ struct ContentView: View {
                     // 핀 표시
                     ForEach(mapModel.pins, id: \.id) { pin in
                         Annotation(pin.name, coordinate: pin.location.toCLLocationCoordinate2D()) {
-                            if pin.tag == .시작점 || pin.tag == .종료점 {
-                                Circle()
-                                    .stroke(Color(hex: pin.tag.color)!, lineWidth: 8)
-                                    .fill(Color.secondary)
-                                    .frame(width: 12, height: 12)
-                            } else {
-                                Image(systemName: pin.tag.icon)
-                                    .padding(4)
-                                    .foregroundStyle(.secondary)
-                                    .background(Color(hex: pin.tag.color))
-                                    .clipShape(Circle())
-                            }
+                            Circle()
+                                .stroke(Color(hex: pin.color)!, lineWidth: 8)
+                                .fill(Color.secondary)
+                                .frame(width: 12, height: 12)
                         }
                     }
                     
@@ -81,6 +76,12 @@ struct ContentView: View {
                     )
                     
                     isFollow = false
+                }
+                .onChange(of: mapModel.createPathComplete) { _, isComplete in
+                    guard isComplete, !mapModel.recordingPath.isEmpty else { return }
+                    Task {
+                        await captureMapSnapshot()
+                    }
                 }
                 
                 Circle()
@@ -138,6 +139,84 @@ struct ContentView: View {
             }
             
             mapModel.paths[index].coordinates = routeCoordinates.map { .init(coordinate: $0) }
+        }
+    }
+    
+    func captureMapSnapshot() async {
+        let coordinates = mapModel.recordingPath
+        let imageSize = CGSize(width: 512, height: 512)
+        let lineColor = UIColor.white
+        let lineWidth: CGFloat = 5.0
+        
+        UIGraphicsBeginImageContextWithOptions(imageSize, false, 0)
+        let context = UIGraphicsGetCurrentContext()
+        
+        context?.setStrokeColor(lineColor.cgColor)
+        context?.setLineWidth(lineWidth)
+        context?.setLineJoin(.round)
+        context?.setLineCap(.round)
+        
+        // 좌표를 이미지 크기에 맞게 변환 (정규화)
+        guard let minLat = coordinates.map({ $0.latitude }).min(),
+              let maxLat = coordinates.map({ $0.latitude }).max(),
+              let minLon = coordinates.map({ $0.longitude }).min(),
+              let maxLon = coordinates.map({ $0.longitude }).max() else {
+            return
+        }
+        
+        func normalize(_ coordinate: CLLocationCoordinate2D) -> CGPoint {
+            let x = (coordinate.longitude - minLon) / (maxLon - minLon) * imageSize.width
+            let y = (1 - (coordinate.latitude - minLat) / (maxLat - minLat)) * imageSize.height
+            return CGPoint(x: x, y: y)
+        }
+        
+        for (index, coordinate) in coordinates.enumerated() {
+            let point = normalize(coordinate)
+            if index == 0 {
+                context?.move(to: point)
+            } else {
+                context?.addLine(to: point)
+            }
+        }
+        
+        context?.strokePath()
+        
+        let finalImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        Task {
+            await mapModel.saveSnapshot()
+            snapshotImage = finalImage
+            if let image = finalImage {
+                saveImageToGallery(image)
+            }
+        }
+    }
+    
+    func saveImageToGallery(_ image: UIImage) {
+        PHPhotoLibrary.requestAuthorization { status in
+            if status == .authorized {
+                if let pngData = image.pngData() {
+                    let filename = FileManager.default.temporaryDirectory.appendingPathComponent("polyline_snapshot.png")
+                    do {
+                        try pngData.write(to: filename)
+                        PHPhotoLibrary.shared().performChanges({
+                            let request = PHAssetCreationRequest.forAsset()
+                            request.addResource(with: .photo, fileURL: filename, options: nil)
+                        }) { success, error in
+                            if success {
+                                print("✅ PNG 이미지가 갤러리에 저장됨!")
+                            } else {
+                                print("❌ 이미지 저장 실패: \(error?.localizedDescription ?? "알 수 없는 오류")")
+                            }
+                        }
+                    } catch {
+                        print("❌ 파일 저장 실패: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                print("❌ 갤러리 접근 권한이 필요합니다.")
+            }
         }
     }
 }

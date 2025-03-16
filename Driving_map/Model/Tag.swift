@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Tag {
+final class Tag: CustomStringConvertible {
     @Attribute(.unique) var id: Int  // 고유 ID 설정
     var name: String
     var icon: String
@@ -20,5 +20,15 @@ final class Tag {
         self.name = name
         self.icon = icon
         self.color = color
+    }
+    
+    var description: String {
+        return """
+        Tag {
+            name: \(name)
+            icon: \(icon)
+            color: \(color)
+        }
+        """
     }
 }

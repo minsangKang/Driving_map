@@ -9,16 +9,26 @@ import Foundation
 import SwiftData
 
 @Model
-final class Pin {
+final class Pin: CustomStringConvertible {
     @Attribute(.unique) var id: Int  // 고유 ID 설정
     var name: String
     var location: Location
-    var tag: Tag
+    var color: String
     
-    init(id: Int, name: String, location: Location, tag: Tag) {
+    init(id: Int, name: String, location: Location, color: String) {
         self.id = id
         self.name = name
         self.location = location
-        self.tag = tag
+        self.color = color
+    }
+    
+    var description: String {
+        return """
+        Pin {
+            name: \(name)
+            location: \(location)
+            color: \(color)
+        }
+        """
     }
 }

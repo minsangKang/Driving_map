@@ -15,7 +15,7 @@ struct Driving_mapApp: App {
 
     init() {
         do {
-            sharedModelContainer = try ModelContainer(for: Pin.self, Path.self)
+            sharedModelContainer = try ModelContainer(for: Pin.self, Path.self, Location.self)
         } catch {
             fatalError("SwiftData ModelContainer 생성 실패: \(error)")
         }

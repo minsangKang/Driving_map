@@ -12,5 +12,7 @@
 	<string>이 앱은 사용자의 위치 정보를 사용하여 운전 경로를 제공합니다.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>이 앱은 생성된 이미지를 갤러리에 저장하기 위해 사진 라이브러리에 접근합니다.</string>
 </dict>
 </plist>
