@@ -135,9 +135,9 @@ final class MapViewModel: MapModel {
         let endLocation = Location(coordinate: end)
         
         let newPath = Path(id: pathId, name: "경로\(pathId)", start: startLocation, end: endLocation, waypoints: [startLocation, endLocation], coordinates: coordinates)
-        savePath(newPath)
-        
         let newPin = Pin(id: pinId, name: "경로\(pathId) 종료점", location: endLocation, tag: .종료점)
+        
+        savePath(newPath)
         savePin(newPin)
     }
 }

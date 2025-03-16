@@ -17,14 +17,13 @@ struct ContentView: View {
     @State private var mapModel = MapViewModel()
     
     @State private var cameraPosition: MapCameraPosition = .automatic // 카메라 위치 관리
-    @State private var distance: Double = 800
     @State private var previousScale: CGFloat = 1.0
     @State private var isFollow = true // 현위치 & 방향 적용 여부
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Map(position: $cameraPosition, interactionModes: []) {
+                Map(position: $cameraPosition) {
                     // 사용자 위치 표시
                     if locationManager.userLocation != nil {
                         UserAnnotation()
@@ -33,11 +32,18 @@ struct ContentView: View {
                     // 핀 표시
                     ForEach(mapModel.pins, id: \.id) { pin in
                         Annotation(pin.name, coordinate: pin.location.toCLLocationCoordinate2D()) {
-                            Image(systemName: pin.tag.icon)
-                                .padding(4)
-                                .foregroundStyle(.white)
-                                .background(Color(hex: pin.tag.color))
-                                .clipShape(Circle())
+                            if pin.tag == .시작점 || pin.tag == .종료점 {
+                                Circle()
+                                    .stroke(Color(hex: pin.tag.color)!, lineWidth: 8)
+                                    .fill(Color.secondary)
+                                    .frame(width: 12, height: 12)
+                            } else {
+                                Image(systemName: pin.tag.icon)
+                                    .padding(4)
+                                    .foregroundStyle(.secondary)
+                                    .background(Color(hex: pin.tag.color))
+                                    .clipShape(Circle())
+                            }
                         }
                     }
                     
@@ -50,75 +56,41 @@ struct ContentView: View {
                     // 저장된 경로 표시
                     ForEach(mapModel.paths.indices, id: \.self) { index in
                         if !mapModel.paths[index].coordinates.isEmpty {
-                            MapPolyline(coordinates: Array(mapModel.paths[index].coordinates.map { $0.toCLLocationCoordinate2D() }))
-                                .stroke(Color.blue, style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round))
+                            MapPolyline(coordinates: Array(mapModel.paths[index].coordinates.sorted { $0.createdAt < $1.createdAt }.map { $0.toCLLocationCoordinate2D() }))
+                                .stroke(Color.orange, style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round))
                         }
                     }
                 }
                 .mapStyle(.standard(elevation: .realistic))
-                //            .mapControls {
-                //                MapUserLocationButton()
-                //                MapCompass()
-                //                MapScaleView()
-                //            }
-                .onChange(of: locationManager.heading) { _, newHeading in
-                    guard let heading = newHeading, let location = locationManager.userLocation else { return }
+                .mapControls {
+                    MapUserLocationButton()
+                    MapCompass()
+                    MapScaleView()
+                }
+                .onChange(of: locationManager.userLocation) { _, firstLocation in
+                    guard isFollow, let heading = locationManager.heading, let location = firstLocation else { return }
                     
-                    // 사용자 위치와 heading이 모두 있을 때만 카메라 업데이트
-                    if isFollow {
-                        let coordinate = location.coordinate
-                        cameraPosition = .camera(
-                            MapCamera(
-                                centerCoordinate: coordinate,  // 사용자 위치
-                                distance: distance,  // 고도
-                                heading: heading, // 방향 반영
-                                pitch: 60 // 3D 각도
-                            )
+                    let coordinate = location.coordinate
+                    cameraPosition = .camera(
+                        MapCamera(
+                            centerCoordinate: coordinate,  // 사용자 위치
+                            distance: 1000,  // 고도
+                            heading: heading, // 방향 반영
+                            pitch: 0 // 3D 각도
                         )
-                    }
+                    )
+                    
+                    isFollow = false
                 }
                 
                 Circle()
-                    .strokeBorder(Color.white, lineWidth: 2)
+                    .strokeBorder(Color.secondary, lineWidth: 3)
                     .frame(width: min(geometry.size.width, geometry.size.height) - 32)
                     .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                HStack {
-                    Spacer()
-                    Text("\(Int(distance))m")
-                        .font(.subheadline)
-                        .tint(Color.white)
-                    Spacer()
-                }
-                .position(x: geometry.size.width / 2, y: geometry.size.height / 2 + (min(geometry.size.width, geometry.size.height) - 32) / 2 - 16)
                 
                 // 버튼 추가
                 VStack {
                     Spacer()
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 16) {
-                            Button {
-                                distance -= 100
-                            } label: {
-                                Image(systemName: "plus.square.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 36, height: 36)
-                                    .tint(.secondary)
-                            }
-                            Button {
-                                distance += 100
-                            } label: {
-                                Image(systemName: "minus.square.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 36, height: 36)
-                                    .tint(.secondary)
-                            }
-                            .frame(width: 42, height: 42)
-                        }
-                    }
-                    .padding(8)
                     CaptureButton(mapModel: mapModel)
                 }
             }

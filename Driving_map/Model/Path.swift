@@ -16,15 +16,15 @@ final class Path: Identifiable, CustomStringConvertible {
     var end: Location
     var waypoints: [Location] // 시작점, 경유지, 도착점
     var coordinates: [Location] // 실제 경로를 표시하기 위한 데이터
-    var createdAt: Date?
+    var createdAt: Date
     
     init(id: Int, name: String, start: Location, end: Location, waypoints: [Location], coordinates: [Location], createdAt: Date? = nil) {
         self.id = id
         self.name = name
         self.start = start
         self.end = end
-        self.waypoints = waypoints
-        self.coordinates = coordinates
+        self.waypoints = waypoints.sorted { $0.createdAt < $1.createdAt }
+        self.coordinates = coordinates.sorted { $0.createdAt < $1.createdAt }
         self.createdAt = createdAt ?? Date()
     }
     
@@ -34,9 +34,9 @@ final class Path: Identifiable, CustomStringConvertible {
             name: \(name)
             start: \(start)
             end: \(end)
-            waypoints: \(waypoints.sorted { ($0.createdAt ?? .distantPast) < ($1.createdAt ?? .distantPast) })
-            coordinates: \(coordinates.sorted { ($0.createdAt ?? .distantPast) < ($1.createdAt ?? .distantPast) })
-            createdAt: \(createdAt ?? .distantPast)
+            waypoints: \(waypoints.sorted { $0.createdAt < $1.createdAt })
+            coordinates: \(coordinates.sorted { $0.createdAt < $1.createdAt })
+            createdAt: \(createdAt)
         }
         """
     }

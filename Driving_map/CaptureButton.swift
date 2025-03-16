@@ -47,7 +47,7 @@ private struct PathCaptureButton: View {
         ZStack {
             Circle()
                 .stroke(lineWidth: lineWidth)
-                .foregroundColor(Color.white)
+                .foregroundColor(Color.secondary)
             Button {
                 withAnimation(.easeInOut(duration: 0.25)) {
                     isRecording.toggle()

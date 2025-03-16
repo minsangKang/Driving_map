@@ -13,7 +13,7 @@ import SwiftData
 final class Location: CustomStringConvertible {
     var latitude: Double
     var longitude: Double
-    var createdAt: Date?
+    var createdAt: Date
     
     init(latitude: Double, longitude: Double, createdAt: Date? = nil) {
         self.latitude = latitude
@@ -33,7 +33,7 @@ final class Location: CustomStringConvertible {
     
     var description: String {
         return """
-        Location { (\(latitude), \(longitude)), \(createdAt ?? .distantPast) }
+        Location { (\(latitude), \(longitude)), \(createdAt) }
         """
     }
 }
