@@ -30,6 +30,7 @@ final class MapViewModel: MapModel {
         // 위치 업데이트 감지
         locationManager.$userLocation
             .compactMap { $0 }
+            .map { $0.coordinate }
             .sink { [weak self] newLocation in
                 if self?.isRecording == true {
                     self?.recordingPath.append(newLocation)
@@ -53,9 +54,10 @@ final class MapViewModel: MapModel {
     
     func loadPaths() async {
         guard let modelContext = modelContext else { return }
-        let descriptor = FetchDescriptor<Path>()
+        let descriptor = FetchDescriptor<Path>(sortBy: [SortDescriptor(\.createdAt, order: .forward)])
         do {
             paths = try modelContext.fetch(descriptor)
+            print(paths)
             updatePathIdCounters()
         } catch {
             print("경로 로드 실패: \(error)")
@@ -98,7 +100,7 @@ final class MapViewModel: MapModel {
     
     // MARK: - 경로 캡처
     func toggleRecording() async {
-        guard let currentLocation = locationManager.userLocation else {
+        guard let currentLocation = locationManager.userLocation?.coordinate else {
             print("사용자 위치를 가져올 수 없음")
             return
         }

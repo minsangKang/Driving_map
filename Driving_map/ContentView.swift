@@ -15,68 +15,124 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var locationManager = LocationManager()
     @State private var mapModel = MapViewModel()
+    
+    @State private var cameraPosition: MapCameraPosition = .automatic // 카메라 위치 관리
+    @State private var distance: Double = 800
+    @State private var previousScale: CGFloat = 1.0
+    @State private var isFollow = true // 현위치 & 방향 적용 여부
 
     var body: some View {
-        ZStack {
-            Map {
-                // 사용자 위치 표시
-                if locationManager.userLocation != nil {
-                    UserAnnotation()
+        GeometryReader { geometry in
+            ZStack {
+                Map(position: $cameraPosition, interactionModes: []) {
+                    // 사용자 위치 표시
+                    if locationManager.userLocation != nil {
+                        UserAnnotation()
+                    }
+                    
+                    // 핀 표시
+                    ForEach(mapModel.pins, id: \.id) { pin in
+                        Annotation(pin.name, coordinate: pin.location.toCLLocationCoordinate2D()) {
+                            Image(systemName: pin.tag.icon)
+                                .padding(4)
+                                .foregroundStyle(.white)
+                                .background(Color(hex: pin.tag.color))
+                                .clipShape(Circle())
+                        }
+                    }
+                    
+                    // 기록 중인 실시간 경로 표시
+                    if !mapModel.recordingPath.isEmpty {
+                        MapPolyline(coordinates: mapModel.recordingPath)
+                            .stroke(Color.yellow, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+                    }
+                    
+                    // 저장된 경로 표시
+                    ForEach(mapModel.paths.indices, id: \.self) { index in
+                        if !mapModel.paths[index].coordinates.isEmpty {
+                            MapPolyline(coordinates: Array(mapModel.paths[index].coordinates.map { $0.toCLLocationCoordinate2D() }))
+                                .stroke(Color.blue, style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round))
+                        }
+                    }
                 }
-
-                // 핀 표시
-                ForEach(mapModel.pins, id: \.id) { pin in
-                    let _ = print("pin[\(pin.name)] 표시")
-                    Annotation(pin.name, coordinate: pin.location.toCLLocationCoordinate2D()) {
-                        Image(systemName: pin.tag.icon)
-                            .padding(4)
-                            .foregroundStyle(.white)
-                            .background(Color(hex: pin.tag.color))
-                            .clipShape(Circle())
+                .mapStyle(.standard(elevation: .realistic))
+                //            .mapControls {
+                //                MapUserLocationButton()
+                //                MapCompass()
+                //                MapScaleView()
+                //            }
+                .onChange(of: locationManager.heading) { _, newHeading in
+                    guard let heading = newHeading, let location = locationManager.userLocation else { return }
+                    
+                    // 사용자 위치와 heading이 모두 있을 때만 카메라 업데이트
+                    if isFollow {
+                        let coordinate = location.coordinate
+                        cameraPosition = .camera(
+                            MapCamera(
+                                centerCoordinate: coordinate,  // 사용자 위치
+                                distance: distance,  // 고도
+                                heading: heading, // 방향 반영
+                                pitch: 60 // 3D 각도
+                            )
+                        )
                     }
                 }
                 
-                // 기록 중인 실시간 경로 표시
-                if !mapModel.recordingPath.isEmpty {
-                    let _ = print("실시간 경로 업데이트: \(mapModel.recordingPath.count) 개")
-                    MapPolyline(coordinates: mapModel.recordingPath)
-                        .stroke(Color.yellow, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+                Circle()
+                    .strokeBorder(Color.white, lineWidth: 2)
+                    .frame(width: min(geometry.size.width, geometry.size.height) - 32)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                HStack {
+                    Spacer()
+                    Text("\(Int(distance))m")
+                        .font(.subheadline)
+                        .tint(Color.white)
+                    Spacer()
                 }
+                .position(x: geometry.size.width / 2, y: geometry.size.height / 2 + (min(geometry.size.width, geometry.size.height) - 32) / 2 - 16)
                 
-                // 저장된 경로 표시
-                ForEach(mapModel.paths.indices, id: \.self) { index in
-                    if !mapModel.paths[index].coordinates.isEmpty {
-                        let _ = print("path[\(index)] 표시")
-                        MapPolyline(coordinates: Array(mapModel.paths[index].coordinates.map { $0.toCLLocationCoordinate2D() }))
-                            .stroke(Color.blue, style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round))
+                // 버튼 추가
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 16) {
+                            Button {
+                                distance -= 100
+                            } label: {
+                                Image(systemName: "plus.square.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 36, height: 36)
+                                    .tint(.secondary)
+                            }
+                            Button {
+                                distance += 100
+                            } label: {
+                                Image(systemName: "minus.square.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 36, height: 36)
+                                    .tint(.secondary)
+                            }
+                            .frame(width: 42, height: 42)
+                        }
                     }
+                    .padding(8)
+                    CaptureButton(mapModel: mapModel)
                 }
             }
-            .mapStyle(.standard(elevation: .realistic))
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-                MapScaleView()
+            .onAppear {
+                UIApplication.shared.isIdleTimerDisabled = true // 화면 꺼짐 방지 설정
+                mapModel.modelContext = modelContext
+                Task {
+                    // 경로 로드
+                    await mapModel.loadPins()
+                    await mapModel.loadPaths()
+                }
             }
-
-            // 버튼 추가
-            VStack {
-                Spacer()
-                CaptureButton(mapModel: mapModel)
-            }
-        }
-        .onAppear {
-            mapModel.modelContext = modelContext
-            Task {
-                // 경로 로드
-                await mapModel.loadPins()
-                await mapModel.loadPaths()
-            }
-        }
-        .onChange(of: mapModel.paths) { oldValue, newValue in
-            Task {
-                // 경로 계산
-                await updatePaths()
+            .onDisappear {
+                UIApplication.shared.isIdleTimerDisabled = false // 화면 꺼짐 방지 제거
             }
         }
     }
@@ -109,7 +165,6 @@ struct ContentView: View {
                 }
             }
             
-            print("path[\(mapModel.paths[index].name)] 경로는 \(routeCoordinates.count)개")
             mapModel.paths[index].coordinates = routeCoordinates.map { .init(coordinate: $0) }
         }
     }

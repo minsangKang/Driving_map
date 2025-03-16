@@ -10,7 +10,7 @@ import CoreLocation
 
 final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var locationManager: CLLocationManager
-    @Published var userLocation: CLLocationCoordinate2D?
+    @Published var userLocation: CLLocation?
     @Published var heading: CLLocationDirection?
 
     override init() {
@@ -26,7 +26,7 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        userLocation = location.coordinate
+        userLocation = location
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
