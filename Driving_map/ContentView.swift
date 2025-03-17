@@ -92,6 +92,21 @@ struct ContentView: View {
                 // 버튼 추가
                 VStack {
                     Spacer()
+                    HStack {
+                        Spacer()
+                        Button {
+                            Task {
+                                await mapModel.removeLastPath()
+                            }
+                        } label: {
+                            Image(systemName: "trash.square")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 36, height: 36)
+                                .tint(Color.secondary)
+                        }
+                        .padding(8)
+                    }
                     CaptureButton(mapModel: mapModel)
                 }
             }
@@ -141,13 +156,14 @@ struct ContentView: View {
             mapModel.paths[index].coordinates = routeCoordinates.map { .init(coordinate: $0) }
         }
     }
-    
+
     func captureMapSnapshot() async {
         let coordinates = mapModel.recordingPath
         let imageSize = CGSize(width: 512, height: 512)
         let lineColor = UIColor.white
-        let lineWidth: CGFloat = 5.0
-        
+        let lineWidth: CGFloat = 6.0
+        let padding: CGFloat = 16.0 // 🔥 여백 추가 (경로가 이미지 밖으로 나가는 문제 해결)
+
         UIGraphicsBeginImageContextWithOptions(imageSize, false, 0)
         let context = UIGraphicsGetCurrentContext()
         
@@ -155,35 +171,53 @@ struct ContentView: View {
         context?.setLineWidth(lineWidth)
         context?.setLineJoin(.round)
         context?.setLineCap(.round)
-        
-        // 좌표를 이미지 크기에 맞게 변환 (정규화)
+
         guard let minLat = coordinates.map({ $0.latitude }).min(),
               let maxLat = coordinates.map({ $0.latitude }).max(),
               let minLon = coordinates.map({ $0.longitude }).min(),
               let maxLon = coordinates.map({ $0.longitude }).max() else {
             return
         }
-        
+
+        let latRange = maxLat - minLat
+        let lonRange = maxLon - minLon
+
+        // ✅ 가로/세로 중 더 긴 쪽을 기준으로 스케일 조정
+        let scaleX = (imageSize.width - 2 * padding) / lonRange
+        let scaleY = (imageSize.height - 2 * padding) / latRange
+        let scale = min(scaleX, scaleY) // 🔥 비율 유지하면서 이미지 내부에 맞추기
+
         func normalize(_ coordinate: CLLocationCoordinate2D) -> CGPoint {
-            let x = (coordinate.longitude - minLon) / (maxLon - minLon) * imageSize.width
-            let y = (1 - (coordinate.latitude - minLat) / (maxLat - minLat)) * imageSize.height
+            let x = (coordinate.longitude - minLon) * scale + padding
+            let y = (maxLat - coordinate.latitude) * scale + padding
             return CGPoint(x: x, y: y)
         }
-        
-        for (index, coordinate) in coordinates.enumerated() {
-            let point = normalize(coordinate)
+
+        let pathPoints = coordinates.map { normalize($0) }
+
+        // 🔥 경로의 최소/최대 좌표 계산 후 중앙 정렬
+        let minX = pathPoints.map { $0.x }.min() ?? 0
+        let minY = pathPoints.map { $0.y }.min() ?? 0
+        let maxX = pathPoints.map { $0.x }.max() ?? 0
+        let maxY = pathPoints.map { $0.y }.max() ?? 0
+
+        let offsetX = (imageSize.width - (maxX - minX)) / 2 - minX
+        let offsetY = (imageSize.height - (maxY - minY)) / 2 - minY
+
+        for (index, point) in pathPoints.enumerated() {
+            let adjustedPoint = CGPoint(x: point.x + offsetX, y: point.y + offsetY)
             if index == 0 {
-                context?.move(to: point)
+                context?.move(to: adjustedPoint)
             } else {
-                context?.addLine(to: point)
+                context?.addLine(to: adjustedPoint)
             }
         }
-        
+
         context?.strokePath()
-        
+
         let finalImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        
+
         Task {
             await mapModel.saveSnapshot()
             snapshotImage = finalImage

@@ -49,6 +49,9 @@ final class MapViewModel: MapModel {
         let descriptor = FetchDescriptor<Pin>()
         do {
             pins = try modelContext.fetch(descriptor)
+#if DEBUG
+            print(pins)
+#endif
             await updatePinIdCounters()
         } catch {
             print("핀 로드 실패: \(error)")
@@ -60,9 +63,30 @@ final class MapViewModel: MapModel {
         let descriptor = FetchDescriptor<Path>()
         do {
             paths = try modelContext.fetch(descriptor)
+#if DEBUG
+            print(paths)
+#endif
             await updatePathIdCounters()
         } catch {
             print("경로 로드 실패: \(error)")
+        }
+    }
+    
+    /// 임시로 가장 마지막에 생성된 Path 제거 함수
+    func removeLastPath() async {
+        guard let targetPath = paths.first(where: { $0.id == pathId-1 }),
+              let startPin = pins.first(where: { $0.id == pinId-1 }),
+              let endPin = pins.first(where: { $0.id == pinId-2 }) else {
+            print("제거 대상이 존재하지 않음")
+            return
+        }
+        
+        do {
+            try await deletePin(startPin)
+            try await deletePin(endPin)
+            try await deletePath(targetPath)
+        } catch {
+            print("path 제거 실패: \(error.localizedDescription)")
         }
     }
     
@@ -98,6 +122,38 @@ final class MapViewModel: MapModel {
             await updatePathIdCounters()
         } catch {
             print("경로 저장 실패: \(error)")
+        }
+    }
+    
+    func deletePin(_ pin: Pin) async throws {
+        guard let modelContext = modelContext else { return }
+        
+        modelContext.delete(pin)  // SwiftData에서 삭제
+        do {
+            try modelContext.save()  // 변경 사항 저장
+            if let index = pins.firstIndex(where: { $0.id == pin.id }) {
+                pins.remove(at: index)  // 로컬 배열에서도 삭제
+            }
+            await updatePinIdCounters()
+            print("핀(\(pin.id)) 삭제 성공")
+        } catch {
+            print("핀 삭제 실패: \(error)")
+        }
+    }
+    
+    func deletePath(_ path: Path) async throws {
+        guard let modelContext = modelContext else { return }
+        
+        modelContext.delete(path)  // SwiftData에서 삭제
+        do {
+            try modelContext.save()  // 변경 사항 저장
+            if let index = paths.firstIndex(where: { $0.id == path.id }) {
+                paths.remove(at: index)  // 로컬 배열에서도 삭제
+            }
+            await updatePathIdCounters()
+            print("경로(\(path.id)) 삭제 성공")
+        } catch {
+            print("경로 삭제 실패: \(error)")
         }
     }
     

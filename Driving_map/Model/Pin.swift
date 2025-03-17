@@ -25,6 +25,7 @@ final class Pin: CustomStringConvertible {
     var description: String {
         return """
         Pin {
+            id: \(id)
             name: \(name)
             location: \(location)
             color: \(color)

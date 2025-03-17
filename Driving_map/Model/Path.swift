@@ -31,6 +31,7 @@ final class Path: Identifiable, CustomStringConvertible {
     var description: String {
         return """
         Path {
+            id: \(id)
             name: \(name)
             start: \(start)
             end: \(end)
